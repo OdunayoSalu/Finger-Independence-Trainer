@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,9 +33,14 @@
     <label><input type="checkbox" name="finger" value="4" checked> 4</label>
     <label><input type="checkbox" name="finger" value="5"> 5</label>
 
-    <label>Seconds Between Combos: 
+    <label>Seconds Between Combos:
       <input type="number" name="interval" value="7" min="2" max="60"> seconds
     </label>
+
+    <label>Number of Questions:
+      <input type="number" name="questionCount" value="0" min="0">
+    </label>
+    <p><small>Set to 0 for infinite practice</small></p>
 
     <button type="submit">Start Training</button>
   </form>
@@ -48,6 +54,7 @@
         mode: formData.get('mode'),
         hand: formData.get('hand'),
         interval: parseInt(formData.get('interval')),
+        questionCount: parseInt(formData.get('questionCount')),
         fingers: formData.getAll('finger').map(Number)
       };
 
