@@ -1,37 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>Finger Independence Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    .fingers { font-size: 2em; margin-top: 20px; }
-    button { padding: 10px 20px; font-size: 1em; }
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 2em;
+      background-color: #f8f8f8;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 1em;
+    }
+
+    .hand {
+      font-size: 2.5em;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+
+    .fingers {
+      font-size: 3em;
+      margin-top: 0.5em;
+      color: #333;
+    }
+
+    button {
+      padding: 1em 2em;
+      font-size: 1.5em;
+      border: none;
+      border-radius: 12px;
+      background-color: #4CAF50;
+      color: white;
+      margin-top: 2em;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    button:active {
+      background-color: #3e9143;
+    }
   </style>
 </head>
 <body>
   <h1>🎹 Finger Independence Trainer</h1>
-  <button onclick="generateFingers()">Generate Fingers</button>
+  <div class="hand" id="hand"></div>
   <div class="fingers" id="output"></div>
-  
+  <button onclick="generateFingers()">Generate</button>
+
   <script>
+    const recentCombos = [];
+    const maxHistory = 5;
+
     function generateFingers() {
       const fingers = [1, 2, 3, 4, 5];
-      
-      // Randomly choose how many fingers to lift: 2, 3, or 4
-      const count = Math.floor(Math.random() * 3) + 2; // random number from 2 to 4
-  
-      const selected = [];
-      while (selected.length < count) {
-        const rand = fingers[Math.floor(Math.random() * fingers.length)];
-        if (!selected.includes(rand)) {
-          selected.push(rand);
+      let combo;
+      let attempts = 0;
+
+      do {
+        const hand = Math.random() < 0.5 ? 'Left hand' : 'Right hand';
+        const count = Math.floor(Math.random() * 3) + 2; // 2–4 fingers
+        const selected = [];
+
+        while (selected.length < count) {
+          const rand = fingers[Math.floor(Math.random() * fingers.length)];
+          if (!selected.includes(rand)) {
+            selected.push(rand);
+          }
         }
+
+        selected.sort(); // for consistent comparison
+        combo = { hand, fingers: selected };
+        attempts++;
+
+        if (attempts > 20) break; // fail-safe
+      } while (isDuplicate(combo));
+
+      document.getElementById('hand').innerText = combo.hand;
+      document.getElementById('output').innerText = combo.fingers.join(', ');
+
+      recentCombos.unshift(combo);
+      if (recentCombos.length > maxHistory) {
+        recentCombos.pop();
       }
-  
-      document.getElementById('output').innerText = 
-        `Lift ${count} fingers: ` + selected.sort().join(', ');
+    }
+
+    function isDuplicate(newCombo) {
+      return recentCombos.some(
+        (prev) =>
+          prev.hand === newCombo.hand &&
+          prev.fingers.length === newCombo.fingers.length &&
+          prev.fingers.every((val, idx) => val === newCombo.fingers[idx])
+      );
     }
   </script>
 </body>
