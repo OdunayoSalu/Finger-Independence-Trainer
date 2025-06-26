@@ -14,21 +14,24 @@
   <h1>🎹 Finger Independence Trainer</h1>
   <button onclick="generateFingers()">Generate Fingers</button>
   <div class="fingers" id="output"></div>
-
+  
   <script>
     function generateFingers() {
       const fingers = [1, 2, 3, 4, 5];
+      
+      // Randomly choose how many fingers to lift: 2, 3, or 4
+      const count = Math.floor(Math.random() * 3) + 2; // random number from 2 to 4
+  
       const selected = [];
-
-      while (selected.length < 3) {
+      while (selected.length < count) {
         const rand = fingers[Math.floor(Math.random() * fingers.length)];
         if (!selected.includes(rand)) {
           selected.push(rand);
         }
       }
-
+  
       document.getElementById('output').innerText = 
-        'Lift these fingers: ' + selected.sort().join(', ');
+        `Lift ${count} fingers: ` + selected.sort().join(', ');
     }
   </script>
 </body>
