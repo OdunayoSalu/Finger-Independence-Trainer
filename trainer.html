@@ -2,221 +2,241 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Finger Independence Trainer</title>
+  <title>Finger Trainer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
       padding: 2em;
-      background-color: #f8f8f8;
+      background-color: #fefefe;
+      text-align: center;
     }
 
     h1 {
       font-size: 2em;
-      margin-bottom: 1em;
+      margin-bottom: 0.5em;
     }
 
-    .hand {
+    #hand, #fingers {
       font-size: 2.5em;
-      margin-top: 1em;
-      font-weight: bold;
-    }
-
-    .fingers {
-      font-size: 3em;
-      margin-top: 0.5em;
-      color: #333;
+      margin: 0.4em 0;
     }
 
     #timer {
-      font-size: 1.5em;
-      margin-top: 0.5em;
-      color: #555;
+      font-size: 1.2em;
+      margin: 1em 0;
+    }
+
+    .controls, .settings {
+      margin-top: 1.5em;
     }
 
     button {
-      padding: 1em 2em;
-      font-size: 1.5em;
+      font-size: 1em;
+      padding: 1em 1.5em;
+      margin: 0.5em;
       border: none;
-      border-radius: 12px;
-      background-color: #4CAF50;
+      border-radius: 10px;
+      background-color: #333;
       color: white;
-      margin-top: 1.5em;
-      margin-bottom: 1.5em;
       cursor: pointer;
-      transition: background-color 0.2s ease;
     }
 
     button:hover {
-      background-color: #45a049;
-    }
-
-    .settings {
-      margin-top: 2em;
-      text-align: left;
-      font-size: 1em;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
+      background-color: #555;
     }
 
     .settings label {
-      display: block;
-      margin: 0.5em 0 0.25em;
-      font-weight: bold;
+      display: inline-block;
+      margin: 0.5em;
     }
 
-    .settings input[type="checkbox"],
-    .settings input[type="radio"] {
-      margin-right: 0.5em;
+    .hidden {
+      display: none;
     }
 
-    .settings input[type="number"] {
-      width: 60px;
+    #questionCount {
+      margin-bottom: 1em;
+      font-size: 1em;
+      color: #666;
     }
   </style>
 </head>
 <body>
-  <h1>🎹 Finger Independence Trainer</h1>
-  <div class="hand" id="hand"></div>
-  <div class="fingers" id="output"></div>
-  <div id="timer">Next in: 7s</div>
-  <button onclick="toggleTimer()" id="pauseBtn">Pause</button>
-  <button onclick="generateFingers()">Generate Now</button>
+
+  <h1>🎹 Finger Trainer</h1>
+
+  <div id="questionCount"></div>
+  <div id="hand"></div>
+  <div id="fingers"></div>
+  <div id="timer">Next in <span id="countdown"></span>s</div>
+
+  <div class="controls">
+    <button id="pauseBtn">⏸ Pause</button>
+    <button id="restartBtn">🔄 Restart</button>
+    <button onclick="window.location.href='index.html'">⚙️ Settings</button>
+  </div>
 
   <div class="settings">
-    <label>Training Mode:</label>
-    <label><input type="radio" name="mode" value="single" checked> Single Hand</label>
-    <label><input type="radio" name="mode" value="mirror"> Mirror Mode</label>
-    <label><input type="radio" name="mode" value="bilateral"> Bilateral Independent</label>
-
-    <label>Hand:</label>
-    <label><input type="radio" name="hand" value="left"> Left</label>
-    <label><input type="radio" name="hand" value="right"> Right</label>
-    <label><input type="radio" name="hand" value="both" checked> Both</label>
-
-    <label>Fingers to Test:</label>
-    <label><input type="checkbox" name="finger" value="1"> 1</label>
-    <label><input type="checkbox" name="finger" value="2" checked> 2</label>
-    <label><input type="checkbox" name="finger" value="3" checked> 3</label>
-    <label><input type="checkbox" name="finger" value="4" checked> 4</label>
-    <label><input type="checkbox" name="finger" value="5"> 5</label>
-
-    <label>Seconds Between Combos:
-      <input type="number" id="intervalInput" value="7" min="2" max="60">s
-    </label>
+    <div>
+      <label>
+        Interval:
+        <input type="number" id="intervalInput" min="2" value="7">
+      </label>
+    </div>
+    <div>
+      <label>Hand:
+        <select id="handSelect">
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+          <option value="both">Both</option>
+        </select>
+      </label>
+    </div>
+    <div>
+      <label>Mode:
+        <select id="modeSelect">
+          <option value="single">Single</option>
+          <option value="mirror">Mirror</option>
+          <option value="bilateral">Bilateral</option>
+        </select>
+      </label>
+    </div>
+    <div>
+      <label>Finger counts:</label>
+      <label><input type="checkbox" class="fingerCount" value="1">1</label>
+      <label><input type="checkbox" class="fingerCount" value="2" checked>2</label>
+      <label><input type="checkbox" class="fingerCount" value="3" checked>3</label>
+      <label><input type="checkbox" class="fingerCount" value="4">4</label>
+      <label><input type="checkbox" class="fingerCount" value="5">5</label>
+    </div>
   </div>
 
   <script>
-    let recentCombos = [];
-    const maxHistory = 5;
-    let interval = 7;
-    let countdown = interval;
-    let timer = null;
-    let paused = false;
+    const handDiv = document.getElementById('hand');
+    const fingersDiv = document.getElementById('fingers');
+    const countdownSpan = document.getElementById('countdown');
+    const questionCountDiv = document.getElementById('questionCount');
 
-    function getSettings() {
-      const handSetting = document.querySelector('input[name="hand"]:checked').value;
-      const selectedCounts = Array.from(document.querySelectorAll('input[name="finger"]:checked')).map(cb => parseInt(cb.value));
-      const intervalValue = parseInt(document.getElementById("intervalInput").value);
-      const mode = document.querySelector('input[name="mode"]:checked').value;
-      return { handSetting, selectedCounts, interval: intervalValue, mode };
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let settings = JSON.parse(localStorage.getItem('trainerSettings')) || {
+      mode: 'single',
+      hand: 'both',
+      interval: 7,
+      fingers: [2,3],
+      questionCount: 0
+    };
+
+    let currentQuestion = 1;
+    let totalQuestions = settings.questionCount || 0;
+    let lastCombo = '';
+    let paused = false;
+    let timer = null;
+    let countdown = settings.interval;
+
+    // Apply saved settings to controls
+    document.getElementById('intervalInput').value = settings.interval;
+    document.getElementById('handSelect').value = settings.hand;
+    document.getElementById('modeSelect').value = settings.mode;
+    document.querySelectorAll('.fingerCount').forEach(cb => {
+      cb.checked = settings.fingers.includes(parseInt(cb.value));
+    });
+
+    function updateSettingsFromControls() {
+      settings.interval = parseInt(document.getElementById('intervalInput').value);
+      settings.hand = document.getElementById('handSelect').value;
+      settings.mode = document.getElementById('modeSelect').value;
+      settings.fingers = Array.from(document.querySelectorAll('.fingerCount:checked')).map(cb => parseInt(cb.value));
     }
 
-    function generateCombo(selectedCounts) {
-      const fingers = [1, 2, 3, 4, 5];
-      const count = selectedCounts[Math.floor(Math.random() * selectedCounts.length)];
-      const selected = [];
+    function getRandomFingerCombo() {
+      const numFingers = settings.fingers[Math.floor(Math.random() * settings.fingers.length)];
+      let combo = [];
 
-      while (selected.length < count) {
-        const rand = fingers[Math.floor(Math.random() * fingers.length)];
-        if (!selected.includes(rand)) {
-          selected.push(rand);
+      while (combo.length < numFingers) {
+        const rand = Math.floor(Math.random() * 5) + 1;
+        if (!combo.includes(rand)) {
+          combo.push(rand);
         }
       }
 
-      return selected.sort();
+      combo.sort((a,b) => a - b);
+      const comboStr = combo.join(',');
+      if (comboStr === lastCombo) return getRandomFingerCombo(); // prevent immediate repeat
+      lastCombo = comboStr;
+      return combo;
     }
 
-    function generateFingers() {
-      const settings = getSettings();
+    function getRandomHand() {
+      if (settings.hand === 'both') return Math.random() < 0.5 ? 'Left' : 'Right';
+      return settings.hand.charAt(0).toUpperCase() + settings.hand.slice(1);
+    }
 
-      if (settings.selectedCounts.length === 0) {
-        document.getElementById("hand").innerText = "Please select finger count(s)";
-        document.getElementById("output").innerText = "";
+    function generateCombo() {
+      updateSettingsFromControls();
+
+      if (totalQuestions && currentQuestion > totalQuestions) {
+        handDiv.textContent = '✅ Session Complete!';
+        fingersDiv.textContent = '';
+        countdownSpan.textContent = '-';
+        clearInterval(timer);
         return;
       }
 
-      let outputHTML = "";
-      let handLabel = "";
+      let hand = getRandomHand();
+      let fingers = getRandomFingerCombo();
 
-      if (settings.mode === "single") {
-        const hand = (settings.handSetting === 'both')
-          ? (Math.random() < 0.5 ? 'Left hand' : 'Right hand')
-          : (settings.handSetting === 'left' ? 'Left hand' : 'Right hand');
-
-        const combo = generateCombo(settings.selectedCounts);
-        const fullCombo = { hand, fingers: combo };
-
-        if (!isDuplicate(fullCombo)) {
-          recentCombos.unshift(fullCombo);
-          if (recentCombos.length > maxHistory) recentCombos.pop();
-        }
-
-        handLabel = hand;
-        outputHTML = combo.join(", ");
-      } 
-      else if (settings.mode === "mirror") {
-        const combo = generateCombo(settings.selectedCounts);
-        handLabel = "Both Hands";
-        outputHTML = combo.join(", ");
-      } 
-      else if (settings.mode === "bilateral") {
-        const leftCombo = generateCombo(settings.selectedCounts);
-        const rightCombo = generateCombo(settings.selectedCounts);
-        handLabel = "Bilateral";
-        outputHTML = `Left: ${leftCombo.join(", ")} | Right: ${rightCombo.join(", ")}`;
+      let display = '';
+      if (settings.mode === 'single') {
+        display = `${hand}`;
+      } else if (settings.mode === 'mirror') {
+        display = `Mirror Both Hands`;
+      } else {
+        display = `Left & Right`;
       }
 
-      document.getElementById("hand").innerText = handLabel;
-      document.getElementById("output").innerText = outputHTML;
+      handDiv.textContent = display;
+      fingersDiv.textContent = fingers.join(' - ');
+      questionCountDiv.textContent = `Question ${currentQuestion}${totalQuestions ? ` of ${totalQuestions}` : ''}`;
 
-      interval = settings.interval;
-      countdown = interval;
-    }
-
-    function isDuplicate(newCombo) {
-      return recentCombos.some(
-        (prev) =>
-          prev.hand === newCombo.hand &&
-          prev.fingers.length === newCombo.fingers.length &&
-          prev.fingers.every((val, idx) => val === newCombo.fingers[idx])
-      );
+      currentQuestion++;
     }
 
     function startTimer() {
-      if (timer) clearInterval(timer);
-      countdown = interval;
+      countdown = settings.interval;
+      countdownSpan.textContent = countdown;
       timer = setInterval(() => {
         if (!paused) {
           countdown--;
-          document.getElementById("timer").innerText = `Next in: ${countdown}s`;
+          countdownSpan.textContent = countdown;
           if (countdown <= 0) {
-            generateFingers();
+            generateCombo();
+            countdown = settings.interval;
           }
         }
       }, 1000);
     }
 
-    function toggleTimer() {
+    pauseBtn.addEventListener('click', () => {
       paused = !paused;
-      document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
-    }
+      pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+    });
 
-    // Start on load
-    generateFingers();
+    restartBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      currentQuestion = 1;
+      generateCombo();
+      startTimer();
+    });
+
+    // Start the session
+    generateCombo();
     startTimer();
   </script>
 </body>
