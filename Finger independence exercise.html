@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Finger Independence Trainer</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    .fingers { font-size: 2em; margin-top: 20px; }
+    button { padding: 10px 20px; font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h1>🎹 Finger Independence Trainer</h1>
+  <button onclick="generateFingers()">Generate Fingers</button>
+  <div class="fingers" id="output"></div>
+
+  <script>
+    function generateFingers() {
+      const fingers = [1, 2, 3, 4, 5];
+      const selected = [];
+
+      while (selected.length < 3) {
+        const rand = fingers[Math.floor(Math.random() * fingers.length)];
+        if (!selected.includes(rand)) {
+          selected.push(rand);
+        }
+      }
+
+      document.getElementById('output').innerText = 
+        'Lift these fingers: ' + selected.sort().join(', ');
+    }
+  </script>
+</body>
+</html>
