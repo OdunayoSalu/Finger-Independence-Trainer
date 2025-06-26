@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trainer Setup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f0f0f0; text-align: center; }
+    label { display: block; margin-top: 1em; }
+    input[type="checkbox"], input[type="radio"] { margin-right: 0.5em; }
+    button { padding: 1em; margin-top: 2em; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h1>🎛️ Set Up Your Training</h1>
+
+  <form id="settingsForm">
+    <label>Training Mode:</label>
+    <label><input type="radio" name="mode" value="single" checked> Single Hand</label>
+    <label><input type="radio" name="mode" value="mirror"> Mirror Mode</label>
+    <label><input type="radio" name="mode" value="bilateral"> Bilateral</label>
+
+    <label>Hand:</label>
+    <label><input type="radio" name="hand" value="left"> Left</label>
+    <label><input type="radio" name="hand" value="right"> Right</label>
+    <label><input type="radio" name="hand" value="both" checked> Both</label>
+
+    <label>Fingers to Test:</label>
+    <label><input type="checkbox" name="finger" value="1"> 1</label>
+    <label><input type="checkbox" name="finger" value="2" checked> 2</label>
+    <label><input type="checkbox" name="finger" value="3" checked> 3</label>
+    <label><input type="checkbox" name="finger" value="4" checked> 4</label>
+    <label><input type="checkbox" name="finger" value="5"> 5</label>
+
+    <label>Seconds Between Combos: 
+      <input type="number" name="interval" value="7" min="2" max="60"> seconds
+    </label>
+
+    <button type="submit">Start Training</button>
+  </form>
+
+  <script>
+    document.getElementById('settingsForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      const settings = {
+        mode: formData.get('mode'),
+        hand: formData.get('hand'),
+        interval: parseInt(formData.get('interval')),
+        fingers: formData.getAll('finger').map(Number)
+      };
+
+      localStorage.setItem('trainerSettings', JSON.stringify(settings));
+      window.location.href = "trainer.html";
+    });
+  </script>
+</body>
+</html>
