@@ -30,6 +30,12 @@
       color: #333;
     }
 
+    #timer {
+      font-size: 1.5em;
+      margin-top: 0.5em;
+      color: #555;
+    }
+
     button {
       padding: 1em 2em;
       font-size: 1.5em;
@@ -37,7 +43,8 @@
       border-radius: 12px;
       background-color: #4CAF50;
       color: white;
-      margin-top: 2em;
+      margin-top: 1.5em;
+      margin-bottom: 1.5em;
       cursor: pointer;
       transition: background-color 0.2s ease;
     }
@@ -46,8 +53,28 @@
       background-color: #45a049;
     }
 
-    button:active {
-      background-color: #3e9143;
+    .settings {
+      margin-top: 2em;
+      text-align: left;
+      font-size: 1em;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .settings label {
+      display: block;
+      margin: 0.5em 0 0.25em;
+      font-weight: bold;
+    }
+
+    .settings input[type="checkbox"],
+    .settings input[type="radio"] {
+      margin-right: 0.5em;
+    }
+
+    .settings input[type="number"] {
+      width: 60px;
     }
   </style>
 </head>
@@ -55,20 +82,61 @@
   <h1>🎹 Finger Independence Trainer</h1>
   <div class="hand" id="hand"></div>
   <div class="fingers" id="output"></div>
-  <button onclick="generateFingers()">Generate</button>
+  <div id="timer">Next in: 7s</div>
+  <button onclick="toggleTimer()" id="pauseBtn">Pause</button>
+  <button onclick="generateFingers()">Generate Now</button>
+
+  <div class="settings">
+    <label>Hand:</label>
+    <label><input type="radio" name="hand" value="left"> Left</label>
+    <label><input type="radio" name="hand" value="right"> Right</label>
+    <label><input type="radio" name="hand" value="both" checked> Both</label>
+
+    <label>Fingers to Test:</label>
+    <label><input type="checkbox" name="finger" value="1"> 1</label>
+    <label><input type="checkbox" name="finger" value="2" checked> 2</label>
+    <label><input type="checkbox" name="finger" value="3" checked> 3</label>
+    <label><input type="checkbox" name="finger" value="4" checked> 4</label>
+    <label><input type="checkbox" name="finger" value="5"> 5</label>
+
+    <label>Seconds Between Combos:
+      <input type="number" id="intervalInput" value="7" min="2" max="60">s
+    </label>
+  </div>
 
   <script>
-    const recentCombos = [];
+    let recentCombos = [];
     const maxHistory = 5;
+    let interval = 7;
+    let countdown = interval;
+    let timer = null;
+    let paused = false;
+
+    function getSettings() {
+      const handSetting = document.querySelector('input[name="hand"]:checked').value;
+      const selectedCounts = Array.from(document.querySelectorAll('input[name="finger"]:checked')).map(cb => parseInt(cb.value));
+      const intervalValue = parseInt(document.getElementById("intervalInput").value);
+      return { handSetting, selectedCounts, interval: intervalValue };
+    }
 
     function generateFingers() {
       const fingers = [1, 2, 3, 4, 5];
+      const settings = getSettings();
       let combo;
       let attempts = 0;
 
       do {
-        const hand = Math.random() < 0.5 ? 'Left hand' : 'Right hand';
-        const count = Math.floor(Math.random() * 3) + 2; // 2–4 fingers
+        const hand = (settings.handSetting === 'both')
+          ? (Math.random() < 0.5 ? 'Left hand' : 'Right hand')
+          : (settings.handSetting === 'left' ? 'Left hand' : 'Right hand');
+
+        if (settings.selectedCounts.length === 0) {
+          document.getElementById("hand").innerText = "Please select at least one finger count.";
+          document.getElementById("output").innerText = "";
+          return;
+        }
+
+        const count = settings.selectedCounts[Math.floor(Math.random() * settings.selectedCounts.length)];
         const selected = [];
 
         while (selected.length < count) {
@@ -78,20 +146,24 @@
           }
         }
 
-        selected.sort(); // for consistent comparison
+        selected.sort();
         combo = { hand, fingers: selected };
         attempts++;
 
-        if (attempts > 20) break; // fail-safe
+        if (attempts > 20) break;
       } while (isDuplicate(combo));
 
-      document.getElementById('hand').innerText = combo.hand;
-      document.getElementById('output').innerText = combo.fingers.join(', ');
+      document.getElementById("hand").innerText = combo.hand;
+      document.getElementById("output").innerText = combo.fingers.join(", ");
 
       recentCombos.unshift(combo);
       if (recentCombos.length > maxHistory) {
         recentCombos.pop();
       }
+
+      // update interval setting in case user changed it
+      interval = settings.interval;
+      countdown = interval;
     }
 
     function isDuplicate(newCombo) {
@@ -102,6 +174,29 @@
           prev.fingers.every((val, idx) => val === newCombo.fingers[idx])
       );
     }
+
+    function startTimer() {
+      if (timer) clearInterval(timer);
+      countdown = interval;
+      timer = setInterval(() => {
+        if (!paused) {
+          countdown--;
+          document.getElementById("timer").innerText = `Next in: ${countdown}s`;
+          if (countdown <= 0) {
+            generateFingers();
+          }
+        }
+      }, 1000);
+    }
+
+    function toggleTimer() {
+      paused = !paused;
+      document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
+    }
+
+    // Start on load
+    generateFingers();
+    startTimer();
   </script>
 </body>
 </html>
