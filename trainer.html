@@ -180,7 +180,7 @@
 
     function generateCombo() {
       updateSettingsFromControls();
-
+    
       if (totalQuestions && currentQuestion > totalQuestions) {
         handDiv.textContent = '✅ Session Complete!';
         fingersDiv.textContent = '';
@@ -188,23 +188,30 @@
         clearInterval(timer);
         return;
       }
-
-      let hand = getRandomHand();
-      let fingers = getRandomFingerCombo();
-
+    
       let display = '';
+      let fingersText = '';
+    
       if (settings.mode === 'single') {
+        let hand = getRandomHand();
+        let fingers = getRandomFingerCombo();
         display = `${hand}`;
+        fingersText = fingers.join(' - ');
       } else if (settings.mode === 'mirror') {
+        let fingers = getRandomFingerCombo();
         display = `Mirror Both Hands`;
-      } else {
+        fingersText = fingers.join(' - ');
+      } else if (settings.mode === 'bilateral') {
+        let leftFingers = getRandomFingerCombo();
+        let rightFingers = getRandomFingerCombo();
         display = `Left & Right`;
+        fingersText = `L: ${leftFingers.join('-')}   R: ${rightFingers.join('-')}`;
       }
-
+    
       handDiv.textContent = display;
-      fingersDiv.textContent = fingers.join(' - ');
+      fingersDiv.textContent = fingersText;
       questionCountDiv.textContent = `Question ${currentQuestion}${totalQuestions ? ` of ${totalQuestions}` : ''}`;
-
+    
       currentQuestion++;
     }
 
